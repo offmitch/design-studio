@@ -5,6 +5,8 @@ import './App.css';
 
 function App() {
     const [hatColor, setHatColor] = useState('#222222');
+    const [hatText, setHatText] = useState('Your Text');
+    const [textColor, setTextColor] = useState('#ffffff');
 
     const colors = [
         { name: 'Black', value: '#222222' },
@@ -23,7 +25,7 @@ function App() {
 
             <main className="workspace">
                 <section className="preview">
-                    <HatViewer hatColor={hatColor} />
+                    <HatViewer hatColor={hatColor} hatText={hatText} textColor={textColor} />
                 </section>
 
                 <aside className="editor">
@@ -36,9 +38,8 @@ function App() {
                             {colors.map((color) => (
                                 <button
                                     key={color.value}
-                                    className={`color-option ${
-                                        hatColor === color.value ? 'selected' : ''
-                                    }`}
+                                    className={`color-option ${hatColor === color.value ? 'selected' : ''
+                                        }`}
                                     style={{ backgroundColor: color.value }}
                                     onClick={() => setHatColor(color.value)}
                                     title={color.name}
@@ -47,6 +48,39 @@ function App() {
                         </div>
 
                         <p>Selected: {colors.find(c => c.value === hatColor)?.name}</p>
+                    </div>
+                    <div className="editor-section">
+                        <h3>Custom Text</h3>
+
+                        <input
+                            type="text"
+                            value={hatText}
+                            onChange={(e) => setHatText(e.target.value)}
+                            placeholder="Enter your text"
+                            maxLength={15}
+                        />
+
+                        <h3>Text Colour</h3>
+
+                        <div className="color-options">
+                            <button
+                                className="color-option"
+                                style={{ backgroundColor: '#ffffff' }}
+                                onClick={() => setTextColor('#ffffff')}
+                            />
+
+                            <button
+                                className="color-option"
+                                style={{ backgroundColor: '#222222' }}
+                                onClick={() => setTextColor('#222222')}
+                            />
+
+                            <button
+                                className="color-option"
+                                style={{ backgroundColor: '#c0392b' }}
+                                onClick={() => setTextColor('#c0392b')}
+                            />
+                        </div>
                     </div>
                 </aside>
             </main>

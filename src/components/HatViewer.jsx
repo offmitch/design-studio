@@ -1,6 +1,6 @@
 
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Center } from '@react-three/drei';
+import { OrbitControls, useGLTF, Center, Text } from '@react-three/drei';
 import { useEffect } from 'react';
 
 
@@ -8,45 +8,64 @@ function HatModel({ hatColor }) {
     const { scene } = useGLTF('/models/hat.glb');
 
     useEffect(() => {
-        console.log('--- HAT MODEL STRUCTURE ---');
-
         scene.traverse((child) => {
             if (child.isMesh) {
-                const image = child.material.map?.image;
-
-                if (image) {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = image.width;
-                    canvas.height = image.height;
-
-                    const context = canvas.getContext('2d');
-                    context.drawImage(image, 0, 0);
-
-                    console.log('BASE COLOUR TEXTURE:', canvas.toDataURL());
-                }
+                child.material.color.set(hatColor);
+                child.geometry.computeBoundingBox();
+                console.log('Hat bounds:', child.geometry.boundingBox);
+                console.log('Geometry:', child.geometry);
+                console.log('Position attribute:', child.geometry.attributes.position);
             }
         });
-    }, [scene]);
+    }, [scene, hatColor]);
 
     return (
         <Center>
-            <primitive object={scene} />
+            <primitive object={scene} scale={0.7} />
         </Center>
     );
 }
 
-
-function HatViewer({ hatColor }) {
+function HatText({ hatText, textColor }) {
     return (
-        <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+        <Text
+            position={[0, 10, 32.5]}
+            rotation={[-0.5, 0, 0]}
+            fontSize={8}
+            color={textColor}
+            anchorX="center"
+            anchorY="middle"
+        >
+            {hatText}
+        </Text>
+    );
+}
+
+
+function HatViewer({ hatColor, hatText, textColor }) {
+    return (
+        <Canvas camera={{ position: [0, 0, 320], fov: 45 }}>
             <ambientLight intensity={1.5} />
 
             <directionalLight
                 position={[5, 5, 5]}
-                intensity={2}
+                intensity={1.5}
             />
 
+            <directionalLight
+                position={[-4, 2, -3]}
+                intensity={0.2}
+            />
+            <hemisphereLight
+                intensity={0.8}
+                color="#ffffff"
+                groundColor="#888888"
+            />
             <HatModel hatColor={hatColor} />
+
+            <HatText
+                hatText={hatText}
+                textColor={textColor} />
 
             <OrbitControls
                 enableZoom={true}
