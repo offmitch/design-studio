@@ -1,0 +1,82 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+}
+
+.app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    height: 65px;
+    padding: 0 30px;
+    display: flex;
+    align-items: center;
+    background: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.header h1 {
+    font-size: 20px;
+}
+
+.workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.preview {
+    width: 70%;
+    background: #eaeaea;
+}
+
+.editor {
+    width: 30%;
+    padding: 30px;
+    background: white;
+    border-left: 1px solid #ddd;
+}
+
+
+.editor-section {
+    margin-top: 30px;
+}
+
+.editor-section h3 {
+    font-size: 15px;
+    margin-bottom: 15px;
+}
+
+.color-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.color-option {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    cursor: pointer;
+}
+
+.color-option.selected {
+    outline: 2px solid #333;
+    outline-offset: 3px;
+}
+
+.editor-section p {
+    font-size: 13px;
+    color: #666;
+    margin-top: 18px;
+}
