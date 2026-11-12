@@ -64,19 +64,22 @@ function App() {
 
                         <div className="color-options">
                             <button
-                                className="color-option"
+                                className={`color-option ${textColor === '#ffffff' ? 'selected' : ''
+                                    }`}
                                 style={{ backgroundColor: '#ffffff' }}
                                 onClick={() => setTextColor('#ffffff')}
                             />
 
                             <button
-                                className="color-option"
+                                className={`color-option ${textColor === '#222222' ? 'selected' : ''
+                                    }`}
                                 style={{ backgroundColor: '#222222' }}
                                 onClick={() => setTextColor('#222222')}
                             />
 
                             <button
-                                className="color-option"
+                                className={`color-option ${textColor === '#c0392b' ? 'selected' : ''
+                                    }`}
                                 style={{ backgroundColor: '#c0392b' }}
                                 onClick={() => setTextColor('#c0392b')}
                             />

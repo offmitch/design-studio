@@ -1,30 +1,180 @@
+import { Canvas, createPortal } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Center, Decal } from '@react-three/drei';
+import { useEffect, useMemo, useRef } from 'react';
+import { CanvasTexture } from 'three';
+import * as THREE from 'three';
 
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Center, Text } from '@react-three/drei';
-import { useEffect } from 'react';
-
-
-function HatModel({ hatColor }) {
+function HatModel({ hatColor, hatText, textColor }) {
     const { scene } = useGLTF('/models/hat.glb');
+
+    const mesh = useMemo(() => {
+        let foundMesh = null;
+
+        scene.traverse((child) => {
+            if (child.isMesh) {
+                foundMesh = child;
+            }
+        });
+
+        return foundMesh;
+    }, [scene]);
+
+    const meshRef = useRef(null);
+    meshRef.current = mesh;
 
     useEffect(() => {
         scene.traverse((child) => {
             if (child.isMesh) {
                 child.material.color.set(hatColor);
-                child.geometry.computeBoundingBox();
-                console.log('Hat bounds:', child.geometry.boundingBox);
-                console.log('Geometry:', child.geometry);
-                console.log('Position attribute:', child.geometry.attributes.position);
+                child.updateWorldMatrix(true, false);
             }
         });
     }, [scene, hatColor]);
+    return (
+        <>
+            <Center>
+                <group scale={0.7}>
+                    <primitive object={scene} />
+                </group>
+            </Center>
+
+            {mesh && mesh.parent && createPortal(
+                <HatDecal
+                    mesh={meshRef}
+                    hatText={hatText}
+                    textColor={textColor}
+                />,
+                mesh.parent
+            )}
+        </>
+    );
+
+}
+function createTextTexture(hatText, textColor) {
+    const canvas = document.createElement('canvas');
+
+    canvas.width = 1024;
+    canvas.height = 256;
+
+    const context = canvas.getContext('2d');
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    context.fillStyle = textColor;
+    context.font = 'bold 140px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+
+    context.fillText(hatText, 512, 128);
+
+    const texture = new CanvasTexture(canvas);
+    texture.needsUpdate = true;
+
+    return texture;
+}
+
+function TextTextureTest({ hatText, textColor }) {
+    const texture = useMemo(() => {
+        return createTextTexture(hatText, textColor);
+    }, [hatText, textColor]);
+
+    useEffect(() => {
+        console.log('Texture loaded:', texture.image);
+        console.log('Texture dimensions:', texture.image.width, texture.image.height);
+    }, [texture]);
 
     return (
-        <Center>
-            <primitive object={scene} scale={0.7} />
-        </Center>
+        <mesh
+            position={[0, 10, 32.5]}
+            rotation={[-0.5, 0, 0]}
+        >
+            <planeGeometry args={[20, 5]} />
+            <meshBasicMaterial
+                map={texture}
+                transparent
+                side={THREE.DoubleSide}
+            />
+        </mesh>
     );
 }
+
+
+
+function HatDecal({ mesh, hatText, textColor }) {
+    const texture = useMemo(() => {
+        return createTextTexture(hatText, textColor);
+    }, [hatText, textColor]);
+
+    useEffect(() => {
+        const targetMesh = mesh.current;
+        const geometry = targetMesh.geometry;
+
+        if (!geometry.attributes.normal) {
+            geometry.computeVertexNormals();
+        }
+
+        const target = new THREE.Vector3(0, 3.5, 4.31);
+        const positions = geometry.attributes.position;
+        const normals = geometry.attributes.normal;
+
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+
+        const vertex = new THREE.Vector3();
+
+        for (let i = 0; i < positions.count; i++) {
+            vertex.fromBufferAttribute(positions, i);
+
+            const distance = vertex.distanceToSquared(target);
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = i;
+            }
+        }
+
+        const nearestVertex = new THREE.Vector3()
+            .fromBufferAttribute(positions, closestIndex);
+
+        const nearestNormal = new THREE.Vector3()
+            .fromBufferAttribute(normals, closestIndex);
+
+        geometry.computeBoundingBox();
+
+        const center = geometry.boundingBox.getCenter(
+            new THREE.Vector3()
+        );
+
+        const alignment = nearestNormal.clone().normalize().dot(
+            nearestVertex.clone().sub(center).normalize()
+        );
+
+        console.log('Nearest vertex:', nearestVertex.toArray());
+        console.log('Distance:', Math.sqrt(closestDistance));
+        console.log('Surface normal:', nearestNormal.toArray());
+
+    }, [mesh]);
+
+    return (
+        <Decal
+            mesh={mesh}
+            position={[-0.0125, 2.5, 4.0725]}
+            scale={[4, 2, 0.6]}
+            rotation={Math.PI}
+        >
+            <meshBasicMaterial
+                map={texture}
+                transparent
+                polygonOffset
+                polygonOffsetFactor={-1}
+                side={THREE.DoubleSide}
+            />
+        </Decal>
+    );
+}
+
+
+
 
 function HatText({ hatText, textColor }) {
     return (
@@ -61,11 +211,16 @@ function HatViewer({ hatColor, hatText, textColor }) {
                 color="#ffffff"
                 groundColor="#888888"
             />
-            <HatModel hatColor={hatColor} />
-
-            <HatText
+            <HatModel
+                hatColor={hatColor}
                 hatText={hatText}
-                textColor={textColor} />
+                textColor={textColor}
+            />
+
+            {/* <TextTextureTest
+                hatText={hatText}
+                textColor={textColor}
+            /> */}
 
             <OrbitControls
                 enableZoom={true}
